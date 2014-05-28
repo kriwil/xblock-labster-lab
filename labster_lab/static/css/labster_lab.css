@@ -1,0 +1,9 @@
+/* CSS for LabsterLabXBlock */
+
+.labster_lab_block .count {
+    font-weight: bold;
+}
+
+.labster_lab_block p {
+    cursor: pointer;
+}

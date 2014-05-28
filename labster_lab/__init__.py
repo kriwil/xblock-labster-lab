@@ -1,0 +1,1 @@
+from .labster_lab import LabsterLabXBlock

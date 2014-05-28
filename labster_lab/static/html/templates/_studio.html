@@ -1,0 +1,24 @@
+<script type="text/template" id="labster_lab_select_template">
+  <select>
+    <option value=""></option>
+    <% _.each(labs, function(lab) { %>
+      <option value="<%= lab.id %>"><%= lab.name %></option>
+    <% }); %>
+  </select>
+</script>
+
+<script type="text/template" id="labster_lab_problems_template">
+  <% _.each(lab.quizblocks, function(quizblock) { %>
+  <div class="labster_lab_quizblocks">
+    <p>
+      <!-- <a href="" class="labster_lab_problem_toggle">[-]</a> -->
+      <%= quizblock.description %>
+    </p>
+    <div class="labster_lab_problems">
+      <% _.each(quizblock.problems, function(problem) { %>
+        <p><%= problem.content_markdown %></p>
+      <% }); %>
+    </div>
+  </div>
+  <% }); %>
+</script>
