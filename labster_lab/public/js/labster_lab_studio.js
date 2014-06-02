@@ -12,12 +12,17 @@ function LabsterLabXBlock(runtime, element) {
         $("#labster_lab_select_template").html()
     );
 
+    var lab_display_template = _.template(
+        $("#labster_lab_display_template").html()
+    );
+
     var lab_problems = $("#labster_lab_problems");
     var lab_problems_template = _.template(
         $("#labster_lab_problems_template").html()
     );
 
     var lab_proxy_id = lab_select.data("lab-proxy-id");
+    var lab_proxy_available = parseInt(lab_proxy_id) != 0;
 
     var select_change_handler = function(ev) {
         var el = $(ev.currentTarget);
@@ -39,7 +44,7 @@ function LabsterLabXBlock(runtime, element) {
         }
 
         // create lab_proxy first
-        if (parseInt(lab_proxy_id) == 0) {
+        if (! lab_proxy_available) {
             var post_data = {
                 "lab_proxy_id": lab_proxy_id,
                 "lab_id": lab_id,
@@ -66,17 +71,34 @@ function LabsterLabXBlock(runtime, element) {
     var parse_labs = function(response) {
         labs = response;
 
-        lab_select
-            .empty()
-            .append(lab_select_template({labs: labs}));
+        // if lab proxy is already available, do not show select dropdown
+        if (lab_proxy_available) {
 
-        var lab_id = lab_select.data("lab-id");
+            var lab_id = lab_select.data("lab-id");
+            var lab = _.find(labs, function(item) {
+                return item.id == lab_id;
+            });
 
-        var select = lab_select.find("select");
-        select.bind("change", select_change_handler);
-        if (lab_id) {
-            select.val(lab_id);
+            lab_select
+                .empty()
+                .append(lab_display_template({lab: lab}));
+
             parse_problems(lab_id);
+
+        } else {
+
+            lab_select
+                .empty()
+                .append(lab_select_template({labs: labs}));
+
+            var lab_id = lab_select.data("lab-id");
+
+            var select = lab_select.find("select");
+            select.bind("change", select_change_handler);
+            if (lab_id) {
+                select.val(lab_id);
+                parse_problems(lab_id);
+            }
         }
     }
 

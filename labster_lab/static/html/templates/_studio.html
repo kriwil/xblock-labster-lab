@@ -7,6 +7,10 @@
   </select>
 </script>
 
+<script type="text/template" id="labster_lab_display_template">
+  <h3><%= lab.name %></h3>
+</script>
+
 <script type="text/template" id="labster_lab_problems_template">
   <% _.each(lab.quizblocks, function(quizblock) { %>
   <div class="labster_lab_quizblocks">
