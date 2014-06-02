@@ -1,9 +1,11 @@
 function LabsterLabXBlock(runtime, element) {
 
-    var select_lab_url = runtime.handlerUrl(element, "select_lab");
+    var update_lab_url = runtime.handlerUrl(element, "update_lab");
+    var labs_url = "http://localhost:8000/labster/api/v2/labs/";
+    var lab_proxies_url = "http://localhost:8000/labster/api/v2/lab-proxies/";
 
     var labs = null;
-    var labs_url = "http://localhost:8000/labster/api/v2/labs/";
+    var unit_id = $("#unit-location-id-input").val();
 
     var lab_select = $("#labster_lab_select");
     var lab_select_template = _.template(
@@ -15,18 +17,50 @@ function LabsterLabXBlock(runtime, element) {
         $("#labster_lab_problems_template").html()
     );
 
+    var lab_proxy_id = lab_select.data("lab-proxy-id");
+
     var select_change_handler = function(ev) {
         var el = $(ev.currentTarget);
-        var id = el.val();
+        var lab_id = el.val();
 
-        $.ajax({
-            type: "POST",
-            url: select_lab_url,
-            data: JSON.stringify({"lab_id": id}),
-            success: function(response) {
-                parse_problems(id);
-            }
-        });
+        var update_lab = function() {
+            var post_data = {
+                "lab_id": lab_id,
+                "lab_proxy_id": lab_proxy_id
+            };
+            $.ajax({
+                type: "POST",
+                url: update_lab_url,
+                data: JSON.stringify(post_data),
+                success: function(response) {
+                    parse_problems(lab_id);
+                }
+            });
+        }
+
+        // create lab_proxy first
+        if (parseInt(lab_proxy_id) == 0) {
+            var post_data = {
+                "lab_proxy_id": lab_proxy_id,
+                "lab_id": lab_id,
+                "unit_id": unit_id
+            };
+            $.ajax({
+                type: "POST",
+                url: lab_proxies_url,
+                data: JSON.stringify(post_data),
+                contentType: "application/json",
+                dataType: "json",
+                success: function(response) {
+                    lab_proxy_id = response.id;
+                    update_lab();
+                }
+            });
+
+        } else {
+            update_lab();
+        }
+
     };
 
     var parse_labs = function(response) {

@@ -17,6 +17,11 @@ class LabsterLabXBlock(XBlock):
         help="Selected lab",
     )
 
+    lab_proxy_id = Integer(
+        default=0, scope=Scope.settings,
+        help="Lab proxy",
+    )
+
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
         data = pkg_resources.resource_string(__name__, path)
@@ -51,22 +56,28 @@ class LabsterLabXBlock(XBlock):
     # TO-DO: change this handler to perform your own actions.  You may need more
     # than one handler, or you may not need any handlers at all.
     @XBlock.json_handler
-    def select_lab(self, data, suffix=''):
-        """
-        An example handler, which increments the data.
-        """
-
+    def update_lab(self, data, suffix=''):
         lab_id = data.get('lab_id', 0)
+        lab_proxy_id = data.get('lab_proxy_id', 0)
+
         try:
             lab_id = int(lab_id)
         except ValueError:
             lab_id = 0
 
-        self.lab_id = lab_id
-        return {'lab_id': self.lab_id}
+        try:
+            lab_proxy_id = int(lab_proxy_id)
+        except ValueError:
+            lab_proxy_id = 0
 
-    # TO-DO: change this to create the scenarios you'd like to see in the
-    # workbench while developing your XBlock.
+        self.lab_id = lab_id
+        self.lab_proxy_id = lab_proxy_id
+
+        return {
+            'lab_id': self.lab_id,
+            'lab_proxy_id': self.lab_proxy_id
+        }
+
     @staticmethod
     def workbench_scenarios():
         """A canned scenario for display in the workbench."""
