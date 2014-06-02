@@ -12,11 +12,6 @@ class LabsterLabXBlock(XBlock):
     TO-DO: document what your XBlock does.
     """
 
-    lab_id = Integer(
-        default=0, scope=Scope.settings,
-        help="Selected lab",
-    )
-
     lab_proxy_id = Integer(
         default=0, scope=Scope.settings,
         help="Lab proxy",
@@ -56,25 +51,17 @@ class LabsterLabXBlock(XBlock):
     # TO-DO: change this handler to perform your own actions.  You may need more
     # than one handler, or you may not need any handlers at all.
     @XBlock.json_handler
-    def update_lab(self, data, suffix=''):
-        lab_id = data.get('lab_id', 0)
+    def update_lab_proxy(self, data, suffix=''):
         lab_proxy_id = data.get('lab_proxy_id', 0)
-
-        try:
-            lab_id = int(lab_id)
-        except ValueError:
-            lab_id = 0
 
         try:
             lab_proxy_id = int(lab_proxy_id)
         except ValueError:
             lab_proxy_id = 0
 
-        self.lab_id = lab_id
         self.lab_proxy_id = lab_proxy_id
 
         return {
-            'lab_id': self.lab_id,
             'lab_proxy_id': self.lab_proxy_id
         }
 

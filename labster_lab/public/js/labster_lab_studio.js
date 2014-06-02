@@ -1,6 +1,6 @@
 function LabsterLabXBlock(runtime, element) {
 
-    var update_lab_url = runtime.handlerUrl(element, "update_lab");
+    var update_lab_url = runtime.handlerUrl(element, "update_lab_proxy");
     var labs_url = "http://localhost:8000/labster/api/v2/labs/";
     var lab_proxies_url = "http://localhost:8000/labster/api/v2/lab-proxies/";
 
@@ -22,7 +22,10 @@ function LabsterLabXBlock(runtime, element) {
     );
 
     var lab_proxy_id = lab_select.data("lab-proxy-id");
-    var lab_proxy_available = parseInt(lab_proxy_id) != 0;
+    var lab_proxy_available = false;
+    if (lab_proxy_id && parseInt(lab_proxy_id) != 0) {
+        lab_proxy_available = true;
+    }
 
     var select_change_handler = function(ev) {
         var el = $(ev.currentTarget);
@@ -38,85 +41,71 @@ function LabsterLabXBlock(runtime, element) {
                 url: update_lab_url,
                 data: JSON.stringify(post_data),
                 success: function(response) {
-                    parse_problems(lab_id);
+                    var lab = _.find(labs, function(item) {
+                        return item.id == lab_id;
+                    });
+                    parse_problems(lab.quizblocks);
                 }
             });
         }
 
-        // create lab_proxy first
-        if (! lab_proxy_available) {
-            var post_data = {
-                "lab_proxy_id": lab_proxy_id,
-                "lab_id": lab_id,
-                "unit_id": unit_id
-            };
-            $.ajax({
-                type: "POST",
-                url: lab_proxies_url,
-                data: JSON.stringify(post_data),
-                contentType: "application/json",
-                dataType: "json",
-                success: function(response) {
-                    lab_proxy_id = response.id;
-                    update_lab();
-                }
-            });
-
-        } else {
-            update_lab();
-        }
+        var post_data = {
+            "lab_proxy_id": lab_proxy_id,
+            "lab_id": lab_id,
+            "unit_id": unit_id
+        };
+        $.ajax({
+            type: "POST",
+            url: lab_proxies_url,
+            data: JSON.stringify(post_data),
+            contentType: "application/json",
+            dataType: "json",
+            success: function(response) {
+                lab_proxy_id = response.id;
+                update_lab();
+            }
+        });
 
     };
 
     var parse_labs = function(response) {
         labs = response;
+        lab_select.empty();
 
         // if lab proxy is already available, do not show select dropdown
         if (lab_proxy_available) {
+            var lab = response.lab;
+            var quizblocks = response.quizblocks;
 
-            var lab_id = lab_select.data("lab-id");
-            var lab = _.find(labs, function(item) {
-                return item.id == lab_id;
-            });
-
-            lab_select
-                .empty()
-                .append(lab_display_template({lab: lab}));
-
-            parse_problems(lab_id);
+            lab_select.append(lab_display_template({lab: lab}));
+            parse_problems(quizblocks);
 
         } else {
-
-            lab_select
-                .empty()
-                .append(lab_select_template({labs: labs}));
-
-            var lab_id = lab_select.data("lab-id");
+            lab_select.append(lab_select_template({labs: labs}));
 
             var select = lab_select.find("select");
             select.bind("change", select_change_handler);
-            if (lab_id) {
-                select.val(lab_id);
-                parse_problems(lab_id);
-            }
         }
     }
 
-    var parse_problems = function(lab_id) {
+    var parse_problems = function(quizblocks) {
         lab_problems.empty();
-
-        if (lab_id) {
-            var lab = _.find(labs, function(item) {
-                return item.id == lab_id;
-            });
-
-            lab_problems.append(lab_problems_template({lab: lab}));
-        }
+        lab_problems.append(lab_problems_template({quizblocks: quizblocks}));
     }
 
-    $.ajax({
-        type: "GET",
-        url: labs_url,
-        success: parse_labs
-    });
+    if (lab_proxy_available) {
+        var _url = lab_proxies_url + lab_proxy_id + "/";
+        $.ajax({
+            type: "GET",
+            url: _url,
+            success: parse_labs
+        });
+
+    } else {
+        $.ajax({
+            type: "GET",
+            url: labs_url,
+            success: parse_labs
+        });
+    }
 }
