@@ -31,7 +31,13 @@ class LabsterLabXBlock(XBlock):
         html = self.resource_string("static/html/labster_lab.html")
         frag = Fragment(html.format(self=self))
         frag.add_css(self.resource_string("static/css/labster_lab.css"))
-        frag.add_javascript(self.resource_string("static/js/src/labster_lab.js"))
+        # frag.add_javascript(self.resource_string("static/js/src/labster_lab.js"))
+
+        frag.add_javascript_url(self.runtime.local_resource_url(self, "public/vendor/underscore-min.js"))
+        frag.add_javascript_url(self.runtime.local_resource_url(self, "public/js/labster_lab_lms.js"))
+
+        frag.add_resource(self.resource_string("static/html/templates/_lms.html"), "text/html")
+
         frag.initialize_js('LabsterLabXBlock')
         return frag
 
