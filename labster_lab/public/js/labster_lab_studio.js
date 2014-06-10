@@ -1,8 +1,10 @@
 function LabsterLabXBlock(runtime, element) {
 
+    var _host = "192.168.3.10";
+
     var update_lab_url = runtime.handlerUrl(element, "update_lab_proxy");
-    var labs_url = "http://localhost:8000/labster/api/v2/labs/";
-    var lab_proxies_url = "http://localhost:8000/labster/api/v2/lab-proxies/";
+    var labs_url = "http://" + _host + ":8000/labster/api/v2/labs/";
+    var lab_proxies_url = "http://" + _host + ":8000/labster/api/v2/lab-proxies/";
 
     var labs = null;
     var unit_id = $("#unit-location-id-input").val();

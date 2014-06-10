@@ -34,6 +34,7 @@ class LabsterLabXBlock(XBlock):
         # frag.add_javascript(self.resource_string("static/js/src/labster_lab.js"))
 
         frag.add_javascript_url(self.runtime.local_resource_url(self, "public/vendor/underscore-min.js"))
+        frag.add_javascript_url(self.runtime.local_resource_url(self, "public/vendor/jquery-fullscreen-min.js"))
         frag.add_javascript_url(self.runtime.local_resource_url(self, "public/js/labster_lab_lms.js"))
 
         frag.add_resource(self.resource_string("static/html/templates/_lms.html"), "text/html")
