@@ -12,10 +12,29 @@ class LabsterLabXBlock(XBlock):
     TO-DO: document what your XBlock does.
     """
 
+    has_score = True
+
     lab_proxy_id = Integer(
         default=0, scope=Scope.settings,
         help="Lab proxy",
     )
+
+    def publish_grade(self):
+        score = {
+            'score': 1,
+            'total': 10,
+        }
+
+        self.runtime.publish(
+            self,
+            'grade',
+            {
+                'value': score['score'],
+                'max_value': score['total'],
+            }
+        )
+
+        return score
 
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""

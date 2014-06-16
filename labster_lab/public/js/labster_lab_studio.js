@@ -1,6 +1,6 @@
 function LabsterLabXBlock(runtime, element) {
 
-    var _host = "192.168.3.10";
+    var _host = "localhost";
 
     var update_lab_url = runtime.handlerUrl(element, "update_lab_proxy");
     var labs_url = "http://" + _host + ":8000/labster/api/v2/labs/";

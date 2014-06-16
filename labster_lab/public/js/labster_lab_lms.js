@@ -1,6 +1,6 @@
 function LabsterLabXBlock(runtime, element) {
 
-    var _host = "192.168.3.10";
+    var _host = "localhost";
 
     var lab_proxies_url = "http://" + _host + ":8000/labster/api/v2/lab-proxies/";
     var lab_lms_view = $("#labster_lab_lms_view");
@@ -26,15 +26,16 @@ function LabsterLabXBlock(runtime, element) {
         }
     });
 
-    // var _url = lab_proxies_url + lab_proxy_id + "/";
-    // $.ajax({
-    //     type: "GET",
-    //     url: _url,
-    //     success: function(response) {
-    //         lab_lms_view
-    //             .empty()
-    //             .append(lab_lms_view_template({lab_proxy: response}));
-    //     }
-    // });
-
+    if (lab_proxy_id) {
+        var _url = lab_proxies_url + lab_proxy_id + "/";
+        $.ajax({
+            type: "GET",
+            url: _url,
+            success: function(response) {
+                lab_lms_view
+                    .empty()
+                    .append(lab_lms_view_template({lab_proxy: response}));
+            }
+        });
+    }
 }
