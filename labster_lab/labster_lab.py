@@ -1,10 +1,17 @@
 """TO-DO: Write a description of what this XBlock is."""
 
+import json
 import pkg_resources
+import requests
 
 from xblock.core import XBlock
-from xblock.fields import Scope, Integer
+from xblock.fields import Scope, Integer, Boolean
 from xblock.fragment import Fragment
+
+from .utils import render_template
+
+
+API_BASE_URL = "http://localhost:8000"
 
 
 class LabsterLabXBlock(XBlock):
@@ -18,6 +25,7 @@ class LabsterLabXBlock(XBlock):
         default=0, scope=Scope.settings,
         help="Lab proxy",
     )
+    completed = Boolean(default=False, scope=Scope.user_state, help="Complete status")
 
     def publish_grade(self):
         score = {
@@ -47,16 +55,27 @@ class LabsterLabXBlock(XBlock):
         The primary view of the LabsterLabXBlock, shown to students
         when viewing courses.
         """
-        html = self.resource_string("static/html/labster_lab.html")
-        frag = Fragment(html.format(self=self))
-        frag.add_css(self.resource_string("static/css/labster_lab.css"))
-        # frag.add_javascript(self.resource_string("static/js/src/labster_lab.js"))
 
-        frag.add_javascript_url(self.runtime.local_resource_url(self, "public/vendor/underscore-min.js"))
-        frag.add_javascript_url(self.runtime.local_resource_url(self, "public/vendor/jquery-fullscreen-min.js"))
+        lab_proxy_url = "{}/labster/api/v2/lab-proxies/{}/".format(API_BASE_URL, self.lab_proxy_id)
+        lab_proxy = requests.get(lab_proxy_url).json()
+
+        template_context = {
+            'completed': self.completed if self.completed else False,
+            'lab_proxy': lab_proxy,
+        }
+
+        html = render_template("templates/lab_studio.html", template_context)
+        frag = Fragment(html)
+
+        # html = self.resource_string("static/html/labster_lab.html")
+        # frag = Fragment(html.format(self=self))
+        # frag.add_css(self.resource_string("static/css/labster_lab.css"))
+
+        # frag.add_javascript_url(self.runtime.local_resource_url(self, "public/vendor/underscore-min.js"))
+        # frag.add_javascript_url(self.runtime.local_resource_url(self, "public/vendor/jquery-fullscreen-min.js"))
         frag.add_javascript_url(self.runtime.local_resource_url(self, "public/js/labster_lab_lms.js"))
 
-        frag.add_resource(self.resource_string("static/html/templates/_lms.html"), "text/html")
+        # frag.add_resource(self.resource_string("static/html/templates/_lms.html"), "text/html")
 
         frag.initialize_js('LabsterLabXBlock')
         return frag
@@ -74,8 +93,6 @@ class LabsterLabXBlock(XBlock):
         frag.initialize_js('LabsterLabXBlock')
         return frag
 
-    # TO-DO: change this handler to perform your own actions.  You may need more
-    # than one handler, or you may not need any handlers at all.
     @XBlock.json_handler
     def update_lab_proxy(self, data, suffix=''):
         lab_proxy_id = data.get('lab_proxy_id', 0)
@@ -90,6 +107,30 @@ class LabsterLabXBlock(XBlock):
         return {
             'lab_proxy_id': self.lab_proxy_id
         }
+
+    @XBlock.json_handler
+    def update_completed(self, data, suffix=''):
+        self.completed = True
+        return {'completed': self.completed}
+
+    @XBlock.json_handler
+    def answer_problem(self, data, request, suffix=''):
+        user_id = self.scope_ids.user_id
+        if not user_id:
+            user_id = 4  # FIXME better user_id handling
+
+        problem_id = data.get('problem_id')
+        answer = data.get('answer')
+
+        user_problem_url = "{}/labster/api/v2/user-problem/".format(API_BASE_URL)
+        post_data = {
+            'problem_id': problem_id,
+            'user_id': user_id,
+            'answer': answer,
+        }
+        headers = {'content-type': 'application/json'}
+        response = requests.post(user_problem_url, data=json.dumps(post_data), headers=headers)
+        return response.json()
 
     @staticmethod
     def workbench_scenarios():
