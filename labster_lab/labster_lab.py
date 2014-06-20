@@ -65,7 +65,7 @@ class LabsterLabXBlock(XBlock):
             'lab_proxy': lab_proxy,
         }
 
-        html = render_template("templates/lab_studio.html", template_context)
+        html = render_template("templates/lab_lms.html", template_context)
         frag = Fragment(html)
 
         # html = self.resource_string("static/html/labster_lab.html")
@@ -95,19 +95,20 @@ class LabsterLabXBlock(XBlock):
         return frag
 
     @XBlock.json_handler
-    def update_lab_proxy(self, data, suffix=''):
-        lab_proxy_id = data.get('lab_proxy_id', 0)
+    def create_lab_proxy(self, data, suffix=''):
+        lab_id = data.get('lab_id')
+        location_id = self.location.name
 
-        try:
-            lab_proxy_id = int(lab_proxy_id)
-        except ValueError:
-            lab_proxy_id = 0
-
-        self.lab_proxy_id = lab_proxy_id
-
-        return {
-            'lab_proxy_id': self.lab_proxy_id
+        lab_proxy_url = "{}/labster/api/v2/lab-proxies/".format(API_BASE_URL)
+        post_data = {
+            'lab_id': lab_id,
+            'location_id': location_id,
         }
+        headers = {'content-type': 'application/json'}
+        response = requests.post(lab_proxy_url, data=json.dumps(post_data), headers=headers)
+        response_json = response.json()
+        self.lab_proxy_id = int(response_json['id'])
+        return response_json
 
     @XBlock.json_handler
     def update_completed(self, data, suffix=''):

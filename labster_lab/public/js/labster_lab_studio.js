@@ -1,5 +1,16 @@
 function LabsterLabXBlock(runtime, element) {
 
+    var _lab_proxy_url;
+
+    _lab_proxy_url = runtime.handlerUrl(element, "create_lab_proxy");
+
+    $(function ($) {
+    });
+}
+
+/*
+function LabsterLabXBlock(runtime, element) {
+
     var _host = "localhost";
 
     var update_lab_url = runtime.handlerUrl(element, "update_lab_proxy");
@@ -111,3 +122,4 @@ function LabsterLabXBlock(runtime, element) {
         });
     }
 }
+*/
