@@ -20,6 +20,7 @@ class LabsterLabXBlock(XBlock):
     """
 
     has_score = True
+    weight = 1
 
     lab_proxy_id = Integer(
         default=0, scope=Scope.settings,
@@ -27,10 +28,10 @@ class LabsterLabXBlock(XBlock):
     )
     completed = Boolean(default=False, scope=Scope.user_state, help="Complete status")
 
-    def publish_grade(self):
+    def publish_grade(self, score):
         score = {
-            'score': 1,
-            'total': 10,
+            'score': score,
+            'total': 1,
         }
 
         self.runtime.publish(
@@ -130,7 +131,10 @@ class LabsterLabXBlock(XBlock):
         }
         headers = {'content-type': 'application/json'}
         response = requests.post(user_problem_url, data=json.dumps(post_data), headers=headers)
-        return response.json()
+        response_json = response.json()
+        score = response_json['score']
+        self.publish_grade(score)
+        return response_json
 
     @staticmethod
     def workbench_scenarios():
