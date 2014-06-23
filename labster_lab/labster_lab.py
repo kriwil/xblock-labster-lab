@@ -68,28 +68,35 @@ class LabsterLabXBlock(XBlock):
         html = render_template("templates/lab_lms.html", template_context)
         frag = Fragment(html)
 
-        # html = self.resource_string("static/html/labster_lab.html")
-        # frag = Fragment(html.format(self=self))
-        # frag.add_css(self.resource_string("static/css/labster_lab.css"))
-
-        # frag.add_javascript_url(self.runtime.local_resource_url(self, "public/vendor/underscore-min.js"))
-        # frag.add_javascript_url(self.runtime.local_resource_url(self, "public/vendor/jquery-fullscreen-min.js"))
         frag.add_javascript_url(self.runtime.local_resource_url(self, "public/js/labster_lab_lms.js"))
-
-        # frag.add_resource(self.resource_string("static/html/templates/_lms.html"), "text/html")
 
         frag.initialize_js('LabsterLabXBlock')
         return frag
 
     def studio_view(self, context=None):
-        html = self.resource_string("static/html/labster_lab_studio.html")
-        frag = Fragment(html.format(self=self))
-        frag.add_css(self.resource_string("static/css/labster_lab_studio.css"))
+        template_context = {'lab_proxy_id': self.lab_proxy_id}
 
-        frag.add_javascript_url(self.runtime.local_resource_url(self, "public/vendor/underscore-min.js"))
+
+        if not self.lab_proxy_id:
+            # fetch the proxies
+            labs_url = "{}/labster/api/v2/labs/".format(API_BASE_URL)
+            labs = requests.get(labs_url).json()
+
+            template_context.update({
+                'labs': labs,
+            })
+
+        else:
+            lab_proxy_url = "{}/labster/api/v2/lab-proxies/{}/".format(API_BASE_URL, self.lab_proxy_id)
+            lab_proxy = requests.get(lab_proxy_url).json()
+
+            template_context.update({
+                'lab_proxy': lab_proxy,
+            })
+
+        html = render_template("templates/lab_studio.html", template_context)
+        frag = Fragment(html)
         frag.add_javascript_url(self.runtime.local_resource_url(self, "public/js/labster_lab_studio.js"))
-
-        frag.add_resource(self.resource_string("static/html/templates/_studio.html"), "text/html")
 
         frag.initialize_js('LabsterLabXBlock')
         return frag
@@ -97,6 +104,7 @@ class LabsterLabXBlock(XBlock):
     @XBlock.json_handler
     def create_lab_proxy(self, data, suffix=''):
         lab_id = data.get('lab_id')
+        lab_proxy_id = data.get('lab_proxy_id')
         location_id = self.location.name
 
         lab_proxy_url = "{}/labster/api/v2/lab-proxies/".format(API_BASE_URL)
@@ -104,6 +112,10 @@ class LabsterLabXBlock(XBlock):
             'lab_id': lab_id,
             'location_id': location_id,
         }
+
+        if (lab_proxy_id):
+            post_data['lab_proxy_id'] = lab_proxy_id
+
         headers = {'content-type': 'application/json'}
         response = requests.post(lab_proxy_url, data=json.dumps(post_data), headers=headers)
         response_json = response.json()

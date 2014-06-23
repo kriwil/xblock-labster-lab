@@ -21,16 +21,16 @@ function LabsterLabXBlock(runtime, element) {
             _container.append($(problem).html());
 
         } else {
-            $.ajax({
-                type: "POST",
-                url: _update_completed_url,
-                data: JSON.stringify({completed: 1}),
-                contentType: "application/json",
-                dataType: "json",
-                success: function(response) {
-                    _form.remove();
-                }
-            });
+            // $.ajax({
+            //     type: "POST",
+            //     url: _update_completed_url,
+            //     data: JSON.stringify({completed: 1}),
+            //     contentType: "application/json",
+            //     dataType: "json",
+            //     success: function(response) {
+            //         _form.remove();
+            //     }
+            // });
         }
     };
 

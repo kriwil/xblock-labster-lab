@@ -1,0 +1,27 @@
+{% if lab_proxy_id %}
+<h3>{{ lab_proxy.lab.name }}</h3>
+<div id="labster_lab_quiz_blocks">
+  <div>
+    {% for quiz_block in lab_proxy.quizblocks %}
+    <div>{{ quiz_block.description }}</div>
+    {% endfor %}
+  </div>
+</div>
+
+{% else %}
+<select id="labster_lab_studio_select" name="lab">
+  <option value="0"></option>
+  {% for lab in labs %}
+  <option value="{{ lab.id }}">{{ lab.name }}</option>
+  {% endfor %}
+</select>
+<div id="labster_lab_quiz_blocks">
+  {% for lab in labs %}
+  <div class="labster_lab_{{ lab.id }}_quiz_blocks" style="display:none">
+    {% for quiz_block in lab.quizblocks %}
+    <div>{{ quiz_block.description }}</div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
