@@ -4,7 +4,10 @@ function LabsterLabXBlock(runtime, element) {
         _form,
         _submit_button,
         _container,
-        _answer_problem_url;
+        _answer_problem_url,
+        _completed,
+        _completed_container,
+        _lab_proxy_id;
 
     _current_problem_index = -1;
     _problems = null;
@@ -21,16 +24,20 @@ function LabsterLabXBlock(runtime, element) {
             _container.append($(problem).html());
 
         } else {
-            // $.ajax({
-            //     type: "POST",
-            //     url: _update_completed_url,
-            //     data: JSON.stringify({completed: 1}),
-            //     contentType: "application/json",
-            //     dataType: "json",
-            //     success: function(response) {
-            //         _form.remove();
-            //     }
-            // });
+            _submit_button.hide();
+            if (_lab_proxy_id && ! _completed) {
+                $.ajax({
+                    type: "POST",
+                    url: _update_completed_url,
+                    data: JSON.stringify({}),
+                    contentType: "application/json",
+                    dataType: "json",
+                    success: function(response) {
+                        _form.remove();
+                        _completed_container.find("span").text("True");
+                    }
+                });
+            }
         }
     };
 
@@ -80,9 +87,16 @@ function LabsterLabXBlock(runtime, element) {
         _container = $("#labster_lab_problem_container");
         _form = $("#labster_lab_problem_form");
         _submit_button = $("#labster_lab_problem_submit");
+        _completed_container = $("#labster_lab_completed");
 
-        load_next_problem();
+        var view = $("#labster_lab_lms_view");
+        _lab_proxy_id = view.data("lab-proxy-id");
+        _completed = view.data("completed");
 
-        _form.bind("submit", submit_form);
+        if (! _completed) {
+            load_next_problem();
+            _form.bind("submit", submit_form);
+            _submit_button.show();
+        }
     });
 }

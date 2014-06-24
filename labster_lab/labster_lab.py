@@ -1,11 +1,10 @@
-"""TO-DO: Write a description of what this XBlock is."""
-
 import json
 import pkg_resources
 import requests
+import urllib
 
 from xblock.core import XBlock
-from xblock.fields import Scope, Integer, Boolean
+from xblock.fields import Scope, Integer
 from xblock.fragment import Fragment
 
 from .utils import render_template
@@ -26,7 +25,38 @@ class LabsterLabXBlock(XBlock):
         default=0, scope=Scope.settings,
         help="Lab proxy",
     )
-    completed = Boolean(default=False, scope=Scope.user_state, help="Complete status")
+
+    def get_user_id(self):
+        user_id = self.scope_ids.user_id
+        if not user_id:
+            user_id = 4  # FIXME better user_id handling
+        return user_id
+
+    def get_completed(self):
+        if self.lab_proxy_id:
+            user_id = self.get_user_id()
+            user_lab_proxy_url = "{}/labster/api/v2/user-lab-proxy/".format(API_BASE_URL)
+            params = {
+                'user_id': user_id,
+                'lab_proxy_id': self.lab_proxy_id,
+            }
+            url = "{}?{}".format(user_lab_proxy_url, urllib.urlencode(params))
+            response = requests.get(url)
+            if response.status_code == 200:
+                return response.json()['completed']
+
+        return False
+
+    def post_json(self, url, data=None):
+        headers = {'content-type': 'application/json'}
+        kwargs = {
+            'headers': headers,
+        }
+        if data:
+            kwargs['data'] = json.dumps(data)
+
+        response = requests.post(url, **kwargs)
+        return response
 
     def publish_grade(self, score):
         score = {
@@ -61,7 +91,7 @@ class LabsterLabXBlock(XBlock):
         lab_proxy = requests.get(lab_proxy_url).json()
 
         template_context = {
-            'completed': self.completed if self.completed else False,
+            'completed': self.get_completed(),
             'lab_proxy': lab_proxy,
         }
 
@@ -75,7 +105,6 @@ class LabsterLabXBlock(XBlock):
 
     def studio_view(self, context=None):
         template_context = {'lab_proxy_id': self.lab_proxy_id}
-
 
         if not self.lab_proxy_id:
             # fetch the proxies
@@ -116,23 +145,27 @@ class LabsterLabXBlock(XBlock):
         if (lab_proxy_id):
             post_data['lab_proxy_id'] = lab_proxy_id
 
-        headers = {'content-type': 'application/json'}
-        response = requests.post(lab_proxy_url, data=json.dumps(post_data), headers=headers)
+        response = self.post_json(lab_proxy_url, post_data)
         response_json = response.json()
         self.lab_proxy_id = int(response_json['id'])
         return response_json
 
     @XBlock.json_handler
     def update_completed(self, data, suffix=''):
-        self.completed = True
-        return {'completed': self.completed}
+        user_lab_proxy_url = "{}/labster/api/v2/user-lab-proxy/".format(API_BASE_URL)
+        user_id = self.get_user_id()
+        post_data = {
+            'lab_proxy_id': self.lab_proxy_id,
+            'user_id': user_id,
+            'completed': True,
+        }
+
+        self.post_json(user_lab_proxy_url, post_data)
+        return {'completed': post_data['completed']}
 
     @XBlock.json_handler
     def answer_problem(self, data, request, suffix=''):
-        user_id = self.scope_ids.user_id
-        if not user_id:
-            user_id = 4  # FIXME better user_id handling
-
+        user_id = self.get_user_id()
         problem_id = data.get('problem_id')
         answer = data.get('answer')
 
@@ -142,8 +175,7 @@ class LabsterLabXBlock(XBlock):
             'user_id': user_id,
             'answer': answer,
         }
-        headers = {'content-type': 'application/json'}
-        response = requests.post(user_problem_url, data=json.dumps(post_data), headers=headers)
+        response = self.post_json(user_problem_url, post_data)
         response_json = response.json()
         score = response_json['score']
         self.publish_grade(score)
