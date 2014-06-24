@@ -59,7 +59,8 @@ class LabsterLabXBlock(XBlock):
         return response
 
     def publish_grade(self, score):
-        score = {
+        # this is total score for the whole xblock
+        grade = {
             'score': score,
             'total': 1,
         }
@@ -68,8 +69,8 @@ class LabsterLabXBlock(XBlock):
             self,
             'grade',
             {
-                'value': score['score'],
-                'max_value': score['total'],
+                'value': grade['score'],
+                'max_value': grade['total'],
             }
         )
 
