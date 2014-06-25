@@ -87,8 +87,10 @@ class LabsterLabXBlock(XBlock):
         The primary view of the LabsterLabXBlock, shown to students
         when viewing courses.
         """
-        lab_proxy_url = "{}/labster/api/v2/lab-proxies/{}/".format(API_BASE_URL, self.lab_proxy_id)
-        lab_proxy = requests.get(lab_proxy_url).json()
+        lab_proxy = None
+        if self.lab_proxy_id:
+            lab_proxy_url = "{}/labster/api/v2/lab-proxies/{}/".format(API_BASE_URL, self.lab_proxy_id)
+            lab_proxy = requests.get(lab_proxy_url).json()
 
         template_context = {
             'completed': self.get_completed(),
