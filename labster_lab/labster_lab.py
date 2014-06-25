@@ -87,7 +87,6 @@ class LabsterLabXBlock(XBlock):
         The primary view of the LabsterLabXBlock, shown to students
         when viewing courses.
         """
-
         lab_proxy_url = "{}/labster/api/v2/lab-proxies/{}/".format(API_BASE_URL, self.lab_proxy_id)
         lab_proxy = requests.get(lab_proxy_url).json()
 
@@ -135,7 +134,7 @@ class LabsterLabXBlock(XBlock):
     def create_lab_proxy(self, data, suffix=''):
         lab_id = data.get('lab_id')
         lab_proxy_id = data.get('lab_proxy_id')
-        location_id = self.location.name
+        location_id = self.location.url()
 
         lab_proxy_url = "{}/labster/api/v2/lab-proxies/".format(API_BASE_URL)
         post_data = {
