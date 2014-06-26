@@ -3,6 +3,7 @@ import pkg_resources
 import requests
 import urllib
 
+from webob import Response
 from xblock.core import XBlock
 from xblock.fields import Scope, Integer
 from xblock.fragment import Fragment
@@ -14,9 +15,6 @@ API_BASE_URL = "http://localhost:8000"
 
 
 class LabsterLabXBlock(XBlock):
-    """
-    TO-DO: document what your XBlock does.
-    """
 
     has_score = True
     weight = 1
@@ -25,12 +23,12 @@ class LabsterLabXBlock(XBlock):
         default=0, scope=Scope.settings,
         help="Lab proxy",
     )
+    user_id = Integer(default=0, scope=Scope.user_state, help="Lab proxy")
 
     def get_user_id(self):
-        user_id = self.scope_ids.user_id
-        if not user_id:
-            user_id = 4  # FIXME better user_id handling
-        return user_id
+        if not self.user_id:
+            self.user_id = self.scope_ids.user_id
+        return self.user_id
 
     def get_completed(self):
         if self.lab_proxy_id:
@@ -81,7 +79,6 @@ class LabsterLabXBlock(XBlock):
         data = pkg_resources.resource_string(__name__, path)
         return data.decode("utf8")
 
-    # TO-DO: change this view to display your data your own way.
     def student_view(self, context=None):
         """
         The primary view of the LabsterLabXBlock, shown to students
@@ -132,6 +129,13 @@ class LabsterLabXBlock(XBlock):
         frag.initialize_js('LabsterLabXBlock')
         return frag
 
+    @XBlock.handler
+    def update_user_id(self, request, suffix=''):
+        user_id = request._request.user.id
+        self.user_id = user_id
+        response_data = json.dumps({'user_id': user_id})
+        return Response(response_data, content_type='application/json')
+
     @XBlock.json_handler
     def create_lab_proxy(self, data, suffix=''):
         lab_id = data.get('lab_id')
@@ -166,7 +170,7 @@ class LabsterLabXBlock(XBlock):
         return {'completed': post_data['completed']}
 
     @XBlock.json_handler
-    def answer_problem(self, data, request, suffix=''):
+    def answer_problem(self, data, suffix=''):
         user_id = self.get_user_id()
         problem_id = data.get('problem_id')
         answer = data.get('answer')
