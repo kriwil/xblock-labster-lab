@@ -12,6 +12,10 @@ from .utils import render_template
 
 
 API_BASE_URL = "http://localhost:8000"
+LAB_PROXY_URL = "{}/labster/api/v2/lab-proxies/".format(API_BASE_URL)
+LAB_URL = "{}/labster/api/v2/labs/".format(API_BASE_URL)
+USER_LAB_PROXY_URL = "{}/labster/api/v2/user-lab-proxy/".format(API_BASE_URL)
+USER_PROBLEM_URL = "{}/labster/api/v2/user-problem/".format(API_BASE_URL)
 
 
 class LabsterLabXBlock(XBlock):
@@ -33,12 +37,11 @@ class LabsterLabXBlock(XBlock):
     def get_completed(self):
         if self.lab_proxy_id:
             user_id = self.get_user_id()
-            user_lab_proxy_url = "{}/labster/api/v2/user-lab-proxy/".format(API_BASE_URL)
             params = {
                 'user_id': user_id,
                 'lab_proxy_id': self.lab_proxy_id,
             }
-            url = "{}?{}".format(user_lab_proxy_url, urllib.urlencode(params))
+            url = "{}?{}".format(USER_LAB_PROXY_URL, urllib.urlencode(params))
             response = requests.get(url)
             if response.status_code == 200:
                 return response.json()['completed']
@@ -86,7 +89,7 @@ class LabsterLabXBlock(XBlock):
         """
         lab_proxy = None
         if self.lab_proxy_id:
-            lab_proxy_url = "{}/labster/api/v2/lab-proxies/{}/".format(API_BASE_URL, self.lab_proxy_id)
+            lab_proxy_url = "{}{}/".format(LAB_PROXY_URL, self.lab_proxy_id)
             lab_proxy = requests.get(lab_proxy_url).json()
 
         template_context = {
@@ -107,15 +110,14 @@ class LabsterLabXBlock(XBlock):
 
         if not self.lab_proxy_id:
             # fetch the proxies
-            labs_url = "{}/labster/api/v2/labs/".format(API_BASE_URL)
-            labs = requests.get(labs_url).json()
+            labs = requests.get(LAB_URL).json()
 
             template_context.update({
                 'labs': labs,
             })
 
         else:
-            lab_proxy_url = "{}/labster/api/v2/lab-proxies/{}/".format(API_BASE_URL, self.lab_proxy_id)
+            lab_proxy_url = "{}{}/".format(LAB_PROXY_URL, self.lab_proxy_id)
             lab_proxy = requests.get(lab_proxy_url).json()
 
             template_context.update({
@@ -142,7 +144,6 @@ class LabsterLabXBlock(XBlock):
         lab_proxy_id = data.get('lab_proxy_id')
         location_id = self.location.url()
 
-        lab_proxy_url = "{}/labster/api/v2/lab-proxies/".format(API_BASE_URL)
         post_data = {
             'lab_id': lab_id,
             'location_id': location_id,
@@ -151,14 +152,13 @@ class LabsterLabXBlock(XBlock):
         if (lab_proxy_id):
             post_data['lab_proxy_id'] = lab_proxy_id
 
-        response = self.post_json(lab_proxy_url, post_data)
+        response = self.post_json(LAB_PROXY_URL, post_data)
         response_json = response.json()
         self.lab_proxy_id = int(response_json['id'])
         return response_json
 
     @XBlock.json_handler
     def update_completed(self, data, suffix=''):
-        user_lab_proxy_url = "{}/labster/api/v2/user-lab-proxy/".format(API_BASE_URL)
         user_id = self.get_user_id()
         post_data = {
             'lab_proxy_id': self.lab_proxy_id,
@@ -166,7 +166,7 @@ class LabsterLabXBlock(XBlock):
             'completed': True,
         }
 
-        self.post_json(user_lab_proxy_url, post_data)
+        self.post_json(USER_LAB_PROXY_URL, post_data)
         return {'completed': post_data['completed']}
 
     @XBlock.json_handler
@@ -175,13 +175,12 @@ class LabsterLabXBlock(XBlock):
         problem_id = data.get('problem_id')
         answer = data.get('answer')
 
-        user_problem_url = "{}/labster/api/v2/user-problem/".format(API_BASE_URL)
         post_data = {
             'problem_id': problem_id,
             'user_id': user_id,
             'answer': answer,
         }
-        response = self.post_json(user_problem_url, post_data)
+        response = self.post_json(USER_PROBLEM_URL, post_data)
         response_json = response.json()
         score = response_json['score']
         self.publish_grade(score)
