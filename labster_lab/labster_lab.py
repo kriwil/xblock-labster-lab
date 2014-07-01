@@ -23,7 +23,7 @@ class LabsterLabXBlock(XBlock):
         default=0, scope=Scope.settings,
         help="Lab proxy",
     )
-    user_id = Integer(default=0, scope=Scope.user_state, help="Lab proxy")
+    user_id = Integer(default=0, scope=Scope.user_state, help="user id")
 
     def get_user_id(self):
         if not self.user_id:
