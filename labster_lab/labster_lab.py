@@ -16,6 +16,7 @@ LAB_PROXY_URL = "{}/labster/api/v2/lab-proxies/".format(API_BASE_URL)
 LAB_URL = "{}/labster/api/v2/labs/".format(API_BASE_URL)
 USER_LAB_PROXY_URL = "{}/labster/api/v2/user-lab-proxy/".format(API_BASE_URL)
 USER_PROBLEM_URL = "{}/labster/api/v2/user-problem/".format(API_BASE_URL)
+USER_SAVE_URL = "{}/labster/api/v2/user-save/".format(API_BASE_URL)
 
 
 class LabsterLabXBlock(XBlock):
@@ -184,6 +185,23 @@ class LabsterLabXBlock(XBlock):
         response_json = response.json()
         score = response_json['score']
         self.publish_grade(score)
+        return response_json
+
+    @XBlock.json_handler
+    def create_user_save(self, data, suffix=''):
+        user = self.get_user_id()
+        lab_proxy = data.get('lab_proxy')
+        save_file = data.get('save_file')
+
+        post_data = {
+            'user': user,
+            'lab_proxy': lab_proxy,
+            'save_file': save_file,
+        }
+
+        response = self.post_json(USER_SAVE_URL, post_data)
+        response_json = response.json()
+        self.lab_proxy_id = int(response_json['id'])
         return response_json
 
     @staticmethod
