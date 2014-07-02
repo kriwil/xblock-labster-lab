@@ -17,6 +17,7 @@ LAB_URL = "{}/labster/api/v2/labs/".format(API_BASE_URL)
 USER_LAB_PROXY_URL = "{}/labster/api/v2/user-lab-proxy/".format(API_BASE_URL)
 USER_PROBLEM_URL = "{}/labster/api/v2/user-problem/".format(API_BASE_URL)
 USER_SAVE_URL = "{}/labster/api/v2/user-save/".format(API_BASE_URL)
+ERROR_INFO_URL = "{}/labster/api/v2/error-info/".format(API_BASE_URL)
 
 
 class LabsterLabXBlock(XBlock):
@@ -200,6 +201,27 @@ class LabsterLabXBlock(XBlock):
         }
 
         response = self.post_json(USER_SAVE_URL, post_data)
+        response_json = response.json()
+        self.lab_proxy_id = int(response_json['id'])
+        return response_json
+
+    @XBlock.json_handler
+    def create_error_info(self, data, suffix=''):
+        user = self.get_user_id()
+        lab_proxy = data.get('lab_proxy')
+        browser = data.get('browser')
+        os = data.get('os')
+        message = data.get('message')
+
+        post_data = {
+            'user': user,
+            'lab_proxy': lab_proxy,
+            'browser': browser,
+            'os': os,
+            'message': message
+        }
+
+        response = self.post_json(ERROR_INFO_URL, post_data)
         response_json = response.json()
         self.lab_proxy_id = int(response_json['id'])
         return response_json
