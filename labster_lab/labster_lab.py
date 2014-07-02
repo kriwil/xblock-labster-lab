@@ -38,8 +38,8 @@ class LabsterLabXBlock(XBlock):
         if self.lab_proxy_id:
             user_id = self.get_user_id()
             params = {
-                'user_id': user_id,
-                'lab_proxy_id': self.lab_proxy_id,
+                'user': user_id,
+                'lab_proxy': self.lab_proxy_id,
             }
             url = "{}?{}".format(USER_LAB_PROXY_URL, urllib.urlencode(params))
             response = requests.get(url)
@@ -145,12 +145,12 @@ class LabsterLabXBlock(XBlock):
         location_id = self.location.url()
 
         post_data = {
-            'lab_id': lab_id,
+            'lab': lab_id,
             'location_id': location_id,
         }
 
         if (lab_proxy_id):
-            post_data['lab_proxy_id'] = lab_proxy_id
+            post_data['lab_proxy'] = lab_proxy_id
 
         response = self.post_json(LAB_PROXY_URL, post_data)
         response_json = response.json()
@@ -161,8 +161,8 @@ class LabsterLabXBlock(XBlock):
     def update_completed(self, data, suffix=''):
         user_id = self.get_user_id()
         post_data = {
-            'lab_proxy_id': self.lab_proxy_id,
-            'user_id': user_id,
+            'lab_proxy': self.lab_proxy_id,
+            'user': user_id,
             'completed': True,
         }
 
@@ -176,8 +176,8 @@ class LabsterLabXBlock(XBlock):
         answer = data.get('answer')
 
         post_data = {
-            'problem_id': problem_id,
-            'user_id': user_id,
+            'problem': problem_id,
+            'user': user_id,
             'answer': answer,
         }
         response = self.post_json(USER_PROBLEM_URL, post_data)
