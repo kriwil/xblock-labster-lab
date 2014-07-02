@@ -83,6 +83,10 @@ function LabsterLabXBlock(runtime, element) {
     };
 
     $(function ($) {
+
+        var update_user_url = runtime.handlerUrl(element, "update_user_id");
+        $.get(update_user_url, function(response) {});
+
         _problems = $("#labster_lab_problem_data").children("div");
         _container = $("#labster_lab_problem_container");
         _form = $("#labster_lab_problem_form");
